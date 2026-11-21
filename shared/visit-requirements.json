@@ -1,0 +1,124 @@
+[
+  {
+    "visitType": "Routine check-in",
+    "fields": [
+      { "key": "patient_id", "label": "Patient ID", "required": true },
+      { "key": "visit_date", "label": "Visit Date", "required": true },
+      { "key": "visit_type", "label": "Visit Type", "required": true },
+      { "key": "main_concern", "label": "Main Concern", "required": true },
+      { "key": "symptoms", "label": "Symptoms", "required": true },
+      { "key": "health_status", "label": "Health Status", "required": true },
+      { "key": "medication_adherence", "label": "Medication Adherence", "required": false },
+      { "key": "general_wellbeing", "label": "General Wellbeing", "required": false },
+      { "key": "action_taken", "label": "Action Taken", "required": true },
+      { "key": "follow_up_required", "label": "Follow-up Required", "required": true },
+      { "key": "follow_up_date", "label": "Follow-up Date", "required": false },
+      { "key": "notes", "label": "Notes", "required": false }
+    ]
+  },
+  {
+    "visitType": "Maternal health check",
+    "fields": [
+      { "key": "patient_id", "label": "Patient ID", "required": true },
+      { "key": "visit_date", "label": "Visit Date", "required": true },
+      { "key": "visit_type", "label": "Visit Type", "required": true },
+      { "key": "gestational_age", "label": "Gestational Age", "required": true },
+      { "key": "expected_delivery_date", "label": "Expected Delivery Date", "required": false },
+      { "key": "anc_status", "label": "ANC Status", "required": true },
+      { "key": "pregnancy_risk_status", "label": "Pregnancy Risk Status", "required": true },
+      { "key": "supplement_adherence", "label": "Supplement Adherence", "required": false },
+      { "key": "maternal_health_status", "label": "Maternal Health Status", "required": true },
+      { "key": "fetal_movement_status", "label": "Fetal Movement Status", "required": false },
+      { "key": "delivery_plan", "label": "Delivery Plan", "required": false },
+      { "key": "main_concern", "label": "Main Concern / Visit Purpose", "required": true },
+      { "key": "action_taken", "label": "Action Taken", "required": true },
+      { "key": "referral_required", "label": "Referral Required", "required": false },
+      { "key": "follow_up_required", "label": "Follow-up Required", "required": true },
+      { "key": "follow_up_date", "label": "Follow-up Date", "required": false },
+      { "key": "notes", "label": "Notes", "required": false }
+    ]
+  },
+  {
+    "visitType": "Child wellness",
+    "fields": [
+      { "key": "child_id", "label": "Child ID", "required": true },
+      { "key": "visit_date", "label": "Visit Date", "required": true },
+      { "key": "visit_type", "label": "Visit Type", "required": true },
+      { "key": "age", "label": "Age", "required": true },
+      { "key": "feeding_status", "label": "Feeding Status", "required": true },
+      { "key": "symptoms", "label": "Symptoms", "required": false },
+      { "key": "health_status", "label": "General Health Status", "required": true },
+      { "key": "immunization_status", "label": "Immunization Status", "required": true },
+      { "key": "growth_status", "label": "Growth Status", "required": true },
+      { "key": "development_status", "label": "Development Status", "required": false },
+      { "key": "caregiver_concerns", "label": "Caregiver Concerns", "required": false },
+      { "key": "main_concern", "label": "Main Concern / Visit Purpose", "required": true },
+      { "key": "action_taken", "label": "Action Taken", "required": true },
+      { "key": "referral_required", "label": "Referral Required", "required": false },
+      { "key": "follow_up_required", "label": "Follow-up Required", "required": true },
+      { "key": "follow_up_date", "label": "Follow-up Date", "required": false },
+      { "key": "notes", "label": "Notes", "required": false }
+    ]
+  },
+  {
+    "visitType": "Postnatal check",
+    "fields": [
+      { "key": "mother_id", "label": "Mother ID", "required": true },
+      { "key": "newborn_id", "label": "Newborn ID", "required": true },
+      { "key": "visit_date", "label": "Visit Date", "required": true },
+      { "key": "visit_type", "label": "Visit Type", "required": true },
+      { "key": "delivery_date", "label": "Delivery Date", "required": true },
+      { "key": "maternal_health_status", "label": "Maternal Health Status", "required": true },
+      { "key": "newborn_health_status", "label": "Newborn Health Status", "required": true },
+      { "key": "breastfeeding_status", "label": "Breastfeeding Status", "required": false },
+      { "key": "feeding_status", "label": "Feeding Status", "required": true },
+      { "key": "recovery_status", "label": "Recovery Status", "required": false },
+      { "key": "immunization_status", "label": "Immunization Status", "required": false },
+      { "key": "growth_status", "label": "Growth Status", "required": false },
+      { "key": "danger_signs", "label": "Danger Signs", "required": false },
+      { "key": "main_concern", "label": "Main Concern / Visit Purpose", "required": true },
+      { "key": "action_taken", "label": "Action Taken", "required": true },
+      { "key": "referral_required", "label": "Referral Required", "required": false },
+      { "key": "follow_up_required", "label": "Follow-up Required", "required": true },
+      { "key": "follow_up_date", "label": "Follow-up Date", "required": false },
+      { "key": "notes", "label": "Notes", "required": false }
+    ]
+  },
+  {
+    "visitType": "Home visit",
+    "fields": [
+      { "key": "household_id", "label": "Household ID", "required": true },
+      { "key": "visit_date", "label": "Visit Date", "required": true },
+      { "key": "visit_type", "label": "Visit Type", "required": true },
+      { "key": "visit_purpose", "label": "Visit Purpose", "required": true },
+      { "key": "person_assessed", "label": "Person Assessed", "required": true },
+      { "key": "household_health_status", "label": "Household Health Status", "required": false },
+      { "key": "environmental_concerns", "label": "Environmental Concerns", "required": false },
+      { "key": "health_concern_identified", "label": "Health Concern Identified", "required": true },
+      { "key": "advice_given", "label": "Advice Given", "required": false },
+      { "key": "action_taken", "label": "Action Taken", "required": true },
+      { "key": "referral_required", "label": "Referral Required", "required": false },
+      { "key": "follow_up_required", "label": "Follow-up Required", "required": true },
+      { "key": "follow_up_date", "label": "Follow-up Date", "required": false },
+      { "key": "notes", "label": "Notes", "required": false }
+    ]
+  },
+  {
+    "visitType": "Other",
+    "fields": [
+      { "key": "patient_household_id", "label": "Patient / Household ID", "required": true },
+      { "key": "visit_date", "label": "Visit Date", "required": true },
+      { "key": "visit_type", "label": "Visit Type", "required": true },
+      { "key": "main_concern", "label": "Main Concern", "required": true },
+      { "key": "symptoms", "label": "Symptoms", "required": false },
+      { "key": "observations", "label": "Observations", "required": true },
+      { "key": "health_status", "label": "Health Status", "required": false },
+      { "key": "advice_given", "label": "Advice Given", "required": false },
+      { "key": "action_taken", "label": "Action Taken", "required": true },
+      { "key": "referral_required", "label": "Referral Required", "required": false },
+      { "key": "follow_up_required", "label": "Follow-up Required", "required": true },
+      { "key": "follow_up_date", "label": "Follow-up Date", "required": false },
+      { "key": "notes", "label": "Notes", "required": false }
+    ]
+  }
+]

@@ -1,0 +1,174 @@
+{
+  "patients": [
+    {
+      "id": "AR-201335",
+      "name": "Himanshu Gigi",
+      "age": 10,
+      "gender": "Female",
+      "phone": "7606936999",
+      "village": "Rampur",
+      "address": "GaonBazaar",
+      "guardian": "NA",
+      "notes": [
+        {
+          "id": "7833b1a6-39db-48ba-bd89-d8ebc0eac089",
+          "date": "2026-11-21",
+          "type": "Routine check-in",
+          "notes": "हिमांशु के checkup के लिए गया था उसका। हम तबियत अभी सही लग रहा है, like उसका temperature 30°C है, उसका बच्चा का weight 25 gram है। medicines भी खा रहा है, सही तरह weight भी सही तरह बढ़ रहा है।",
+          "followup": "",
+          "patientNameSnapshot": "Himanshu Gigi",
+          "ageYearsSnapshot": 10,
+          "completionStatus": "draft"
+        },
+        {
+          "id": "b8d678f7-d544-4fe9-8df1-7a51b196b45b",
+          "date": "2026-11-21",
+          "type": "Routine check-in",
+          "notes": "मैंने आज हिमांशु का test करने के लिए गया था। उसका बच्चा का weight सही है, temperature 100°C है and। सब कुछ सही सा चल रहा है, medicines भी सही चल रहा है, तो उसके हिसाब से proper report बना के दे दो।",
+          "followup": "",
+          "patientNameSnapshot": "Himanshu Gigi",
+          "ageYearsSnapshot": 10,
+          "completionStatus": "draft"
+        },
+        {
+          "id": "27d81bf8-922f-490a-a071-28ec202459f4",
+          "date": "2026-11-21",
+          "type": "Routine check-in",
+          "notes": "हिमांशु का बच्चा होने वाला है, बच्चा लगभग। इमांश का बच्चा होने वाला है। बच्चा लगभग हो गया है, आधा बच्चा है। अभी कैसे होगा ये बताओ?",
+          "followup": "",
+          "patientNameSnapshot": "Himanshu Gigi",
+          "ageYearsSnapshot": 10,
+          "temperatureC": 100,
+          "completionStatus": "complete"
+        },
+        {
+          "id": "354ec444-de37-43ae-92d8-4159d0bcdb09",
+          "date": "2026-11-21",
+          "type": "Routine check-in",
+          "notes": "आज हिमांशु का checkup हुआ था। के बाद का temperature 100°C था और उसके में भी का date 2।",
+          "followup": "",
+          "patientNameSnapshot": "Himanshu Gigi",
+          "ageYearsSnapshot": 10,
+          "completionStatus": "draft"
+        },
+        {
+          "id": "9d17f7a1-9313-419b-b6a6-e163296aff79",
+          "date": "2026-11-21",
+          "type": "Routine check-in",
+          "notes": "आज हिमांशु। ये बोल रहा है, उसको तो बच्चा मर गया। उसका temperature था 100°C। and बच्चा का weight 25 grams बढ़ गया है, and हिमांशु गीगी अपने first trimester में। यहाँ। जीगी के पैर में मोच आ गई है।",
+          "followup": "",
+          "patientNameSnapshot": "Himanshu Gigi",
+          "ageYearsSnapshot": 10,
+          "completionStatus": "draft"
+        },
+        {
+          "id": "8eb5db26-e944-4f3d-abcb-5d3354b97cca",
+          "date": "2026-11-21",
+          "type": "Routine check-in",
+          "notes": "आज हिमांशु गीगी का checkup हुआ था and। उसका temperature 100°C था और baby का weight। 25 grams था, and हिमांशी is on her first trimester।",
+          "followup": "",
+          "patientNameSnapshot": "Himanshu Gigi",
+          "ageYearsSnapshot": 10,
+          "completionStatus": "draft"
+        }
+      ]
+    },
+    {
+      "id": "AR-2048",
+      "name": "Meera Devi",
+      "age": 28,
+      "gender": "Female",
+      "phone": "",
+      "village": "Rampur",
+      "address": "",
+      "guardian": "",
+      "notes": [
+        {
+          "id": "v1",
+          "date": "2026-11-19",
+          "type": "Maternal health check",
+          "notes": "Routine antenatal visit. Reports feeling well.",
+          "followup": "2026-11-26"
+        }
+      ]
+    },
+    {
+      "id": "AR-2047",
+      "name": "Sunita Kumari",
+      "age": 34,
+      "gender": "Female",
+      "phone": "",
+      "village": "Rampur",
+      "address": "",
+      "guardian": "",
+      "notes": [
+        {
+          "id": "v2",
+          "date": "2026-11-18",
+          "type": "Child wellness",
+          "notes": "Follow-up visit completed.",
+          "followup": ""
+        }
+      ]
+    },
+    {
+      "id": "AR-2046",
+      "name": "Ravi Kumar",
+      "age": 4,
+      "gender": "Male",
+      "phone": "",
+      "village": "Naya Gaon",
+      "address": "",
+      "guardian": "",
+      "notes": []
+    },
+    {
+      "id": "AR-2045",
+      "name": "Asha Singh",
+      "age": 22,
+      "gender": "Female",
+      "phone": "",
+      "village": "Rampur",
+      "address": "",
+      "guardian": "",
+      "notes": []
+    },
+    {
+      "id": "AR-2044",
+      "name": "Lakshmi Devi",
+      "age": 63,
+      "gender": "Female",
+      "phone": "",
+      "village": "Sundarpur",
+      "address": "",
+      "guardian": "",
+      "notes": []
+    }
+  ],
+  "reminders": [
+    {
+      "id": "r1",
+      "patientId": "AR-2048",
+      "date": "2026-11-22",
+      "time": "09:30",
+      "type": "Maternal health check",
+      "note": ""
+    },
+    {
+      "id": "r2",
+      "patientId": "AR-2046",
+      "date": "2026-11-24",
+      "time": "11:00",
+      "type": "Child wellness",
+      "note": ""
+    },
+    {
+      "id": "r3",
+      "patientId": "AR-2047",
+      "date": "2026-11-26",
+      "time": "10:15",
+      "type": "Postnatal check",
+      "note": ""
+    }
+  ]
+}

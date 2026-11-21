@@ -1,0 +1,1919 @@
+# AROVA — Full-Stack Development Master Specification
+
+Build AROVA, a functional, offline-first, voice-assisted healthcare documentation web application for ASHA workers.
+
+This project is being developed for a 24-hour hackathon. Prioritize a functional end-to-end workflow, reliable data persistence, correctness, a polished user interface, and working integrations over unnecessary features.
+
+The application must be a working full-stack web app, not merely a UI prototype.
+
+---
+
+# 1. PRODUCT DEFINITION
+
+AROVA is a healthcare documentation and patient-record management application designed for ASHA workers.
+
+Its purpose is to:
+
+- Capture patient visit information using voice.
+- Support multiple languages.
+- Convert voice recordings into transcripts.
+- Extract information into structured patient visit reports.
+- Identify missing information.
+- Allow the ASHA worker to verify and correct information.
+- Read reports and captured information aloud.
+- Maintain patient profiles and visit histories.
+- Manage visit reminders, follow-ups, and tasks.
+- Work offline.
+- Persist records locally.
+- Synchronize data incrementally when internet connectivity becomes available.
+- Recognize community health patterns from available records.
+- Display rule-based danger-level flags without diagnosing patients.
+
+AROVA is strictly a healthcare documentation and reporting application.
+
+## Explicitly prohibited functionality
+
+AROVA must NOT:
+
+- Diagnose diseases.
+- Generate medical diagnoses.
+- Provide medical suggestions.
+- Recommend treatment.
+- Prescribe medication.
+- Invent patient information.
+- Automatically convert uncertain information into confirmed information.
+- Replace healthcare professionals.
+
+It is a report-making and record-management application.
+
+Danger-level prediction is strictly a rule-based flagging feature using predefined medical rules. It must not function as diagnosis, treatment advice, or a medical recommendation engine.
+
+---
+
+# 2. REQUIRED HACKATHON CONSTRAINTS
+
+These constraints are mandatory.
+
+| Requirement | Specification |
+|---|---|
+| Duration | 24-hour hackathon |
+| AI platform | Gnani API Platform |
+| API credentials | Team-generated API key |
+| Platform credits | 5,000 credits per team |
+| Connection | WebSocket streaming only |
+| Telephony | Not allowed |
+| Phone-number integration | Not allowed |
+| Required STT | Prisma v3.0 |
+| Required TTS | Timbre v3.0 |
+| LLM | Open choice |
+| Orchestration | Open choice: Pipecat, LiveKit, or custom |
+| Hosted end-to-end agent | Cannot be the core processing loop |
+| Voice cloning | Not allowed |
+| Test audio | Team's own sourced audio |
+| Real customer recordings | Do not use |
+| Real patient data | Do not use for hackathon testing |
+
+Use synthetic/demo patient data for development and demonstration.
+
+---
+
+# 3. REQUIRED TECH STACK
+
+## Frontend
+
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- React Router
+- IndexedDB for persistent local data
+- Service Worker/PWA capabilities
+- Responsive web design
+
+Frontend deployment:
+
+**Vercel**
+
+## Backend
+
+- Node.js
+- Express
+- TypeScript
+- REST API
+
+Backend deployment:
+
+**Render**
+
+## Database
+
+- PostgreSQL
+- Prisma ORM
+
+The architecture must support local-first functionality.
+
+The local database is the primary source of truth for the user-facing application.
+
+The server database is the synchronized remote copy.
+
+The internet must primarily be used for:
+
+- AI processing
+- Transcription
+- TTS
+- Incremental synchronization
+- Remote backup/synchronization
+
+The application must not become unusable because the server is unavailable.
+
+## Local Database
+
+Use IndexedDB.
+
+Prefer a reliable abstraction such as Dexie.js for IndexedDB management.
+
+Persist:
+
+- Patient profiles
+- Patient edits
+- Visits
+- Visit transcripts
+- Visit reports
+- Recordings
+- Appointment records
+- Follow-ups
+- Tasks
+- Patient history
+- Queue entries
+- Sync metadata
+- Processing states
+
+Do not use RAM as the persistent queue.
+
+Do not rely solely on localStorage.
+
+---
+
+# 4. REQUIRED AI AND VOICE TECHNOLOGY
+
+## Speech-to-Text
+
+Required:
+
+**Gnani AI Prisma v3.0**
+
+Use the Gnani API Platform.
+
+Implement a real integration.
+
+Requirements:
+
+- Multiple supported languages.
+- Hindi.
+- English.
+- Hinglish.
+- Language-aware transcription.
+- Recording upload or supported WebSocket transcription workflow.
+- Transcription status.
+- Error handling.
+- Retry support.
+- Transcript retrieval.
+- Transcript correction.
+
+API keys must be stored only on the backend.
+
+## Text-to-Speech
+
+Required:
+
+**Gnani AI Timbre v3.0**
+
+Use the Gnani API Platform.
+
+Requirements:
+
+- Read-back of patient information.
+- Read-back of visit reports.
+- Read-back of missing-information prompts.
+- Read-back of corrections.
+- Audio playback controls.
+
+Implement the required WebSocket streaming interface.
+
+No voice cloning.
+
+## LLM
+
+Open choice.
+
+Use an LLM to:
+
+- Extract structured information from transcripts.
+- Generate report summaries.
+- Identify missing information.
+- Organize information into structured fields.
+- Process voice correction commands.
+- Support profile creation from captured information.
+- Assist in identifying community health patterns.
+
+LLM output must be validated before it is saved.
+
+The LLM must not diagnose or suggest treatments.
+
+## Orchestration
+
+Open choice:
+
+- Custom orchestration
+- Pipecat
+- LiveKit
+
+A hosted end-to-end agent platform cannot be the core processing loop.
+
+Keep the application workflow under our control.
+
+---
+
+# 5. VOICE RECORDING REQUIREMENTS
+
+## Recording
+
+The application must allow:
+
+- Start recording
+- Stop recording
+- Pause/resume if supported
+- Playback
+- Delete
+- Re-record
+- Save locally
+- Submit for processing
+
+Show:
+
+- Recording state
+- Duration
+- Audio status
+- Processing status
+- Transcription status
+
+## AUDIO COMPRESSION
+
+The application must compress recorded audio to reduce storage and network usage.
+
+### Strict requirement:
+
+**Compress recordings. Do not slice, split, chunk, or segment recordings into multiple audio pieces.**
+
+The recording must remain one logical recording.
+
+Do not implement:
+
+- Audio chunk splitting
+- Chunk-by-chunk transcription workflows
+- Automatic segmentation into multiple files
+- Recording slices
+
+Compression may reduce bitrate, file size, or use an efficient audio codec, provided the recording remains one complete audio file.
+
+Preserve the full recording and its continuity.
+
+The compressed audio file should be stored locally and uploaded as a single logical recording when required by the selected API integration.
+
+If the API imposes a limitation, document it and choose the appropriate supported upload or WebSocket method without implementing recording slicing.
+
+---
+
+# 6. ARCHITECTURE
+
+Implement the following architecture:
+
+```text
+                    AROVA WEB APP
+                         |
+                         |
+              ┌──────────▼──────────┐
+              │   React Frontend    │
+              │                     │
+              │  Dashboard          │
+              │  Patient Profiles  │
+              │  Visit Capture     │
+              │  Reports           │
+              │  Tasks             │
+              └──────────┬──────────┘
+                         |
+                         |
+              ┌──────────▼──────────┐
+              │  Local Database     │
+              │                     │
+              │  IndexedDB         │
+              │  Persistent Queue  │
+              │  Local Records     │
+              │  Audio Files       │
+              └──────────┬──────────┘
+                         |
+               Internet Available?
+                         |
+              ┌──────────┴──────────┐
+              │                     │
+             NO                    YES
+              │                     │
+              ▼                     ▼
+        Continue Offline     Incremental Sync
+                                    |
+                                    ▼
+                           ┌────────────────┐
+                           │ Node Backend   │
+                           │ Render         │
+                           └───────┬────────┘
+                                   |
+                ┌──────────────────┼──────────────────┐
+                │                  │                  │
+                ▼                  ▼                  ▼
+           Gnani STT           LLM Service         Gnani TTS
+           Prisma v3.0          Extraction          Timbre v3.0
+                │                  │                  │
+                └──────────────────┼──────────────────┘
+                                   |
+                                   ▼
+                            PostgreSQL
+```
+
+## Architecture Principles
+
+1. Local data is immediately persisted.
+2. Network availability must not determine whether a visit can be saved.
+3. Processing is deferred when necessary.
+4. Synchronization is incremental.
+5. Server requests must be idempotent.
+6. Background processing must be persistent.
+7. Every record must have a unique identifier.
+8. Every processing operation must have a visible status.
+9. Failed operations must be recoverable.
+10. Never discard a patient record silently.
+
+---
+
+# 7. REQUIRED PERSISTENT QUEUE
+
+Implement a persistent queue.
+
+The queue must survive:
+
+- Browser refresh
+- Tab closure
+- Application restart
+- Temporary internet loss
+- Failed processing
+- Failed synchronization
+
+Do not keep the queue only in RAM.
+
+Queue entries must be stored in IndexedDB.
+
+Each queue entry should contain:
+
+- Unique queue ID
+- Associated patient ID
+- Associated visit ID
+- Operation type
+- Payload/reference
+- Creation timestamp
+- Last attempted timestamp
+- Retry count
+- Status
+- Error information
+- Next scheduled retry time
+- Idempotency key
+
+## Queue Statuses
+
+Use statuses such as:
+
+- Pending
+- Processing
+- Waiting for connection
+- Retry scheduled
+- Failed
+- Completed
+
+## Deferred Processing
+
+When the internet or required API is unavailable:
+
+- Preserve the queued operation.
+- Mark it as deferred.
+- Wait until processing is possible.
+- Resume processing when connectivity returns.
+
+Do not discard queued jobs.
+
+---
+
+# 8. RETRY LOGIC
+
+Implement retry logic for temporary failures.
+
+Examples:
+
+- Network failure
+- API timeout
+- Server error
+- Transcription failure
+- Temporary AI failure
+- Synchronization failure
+
+Use exponential backoff.
+
+Example strategy:
+
+```text
+Attempt 1 → Immediate
+Attempt 2 → 2 seconds
+Attempt 3 → 4 seconds
+Attempt 4 → 8 seconds
+Attempt 5 → 16 seconds
+```
+
+Use reasonable maximum retry limits and maximum delays.
+
+Add jitter to prevent repeated synchronized retries.
+
+Permanent errors should not be endlessly retried.
+
+The user must be able to manually retry failed jobs.
+
+---
+
+# 9. IDEMPOTENCY
+
+Every operation that can be retried must have a unique idempotency key.
+
+Examples:
+
+- Creating a patient
+- Creating a visit
+- Uploading a recording
+- Creating a report
+- Synchronizing data
+
+If the same request is received multiple times, it must not create duplicate records.
+
+The backend must validate and recognize duplicate idempotency keys.
+
+---
+
+# 10. BACKGROUND EXECUTION
+
+Implement background work scheduling where supported.
+
+Possible tasks:
+
+- Pending audio processing
+- Deferred transcription
+- AI extraction
+- Synchronization
+- Report generation
+- Pending queue processing
+
+Use:
+
+- Persistent local queue
+- Background processing
+- Background Sync API where supported
+- Service Worker where appropriate
+- App-level processing when the application is active
+
+Browser background capabilities are limited.
+
+Do not falsely claim that processing can continue indefinitely when the browser is completely closed.
+
+If background execution is unavailable, resume automatically when the application opens or becomes active.
+
+---
+
+# 11. RESUME SUPPORT
+
+Every operation must be recoverable.
+
+If:
+
+- The application crashes
+- The browser closes
+- Internet disappears
+- A request times out
+- AI processing fails
+
+The operation must retain enough state to resume.
+
+Use persistent state tracking.
+
+Do not restart the entire workflow unnecessarily.
+
+Resume from the last successfully completed stage where possible.
+
+Example:
+
+```text
+Recording saved
+      ↓
+Compression completed
+      ↓
+Transcription pending
+      ↓
+Transcription completed
+      ↓
+Extraction pending
+      ↓
+Extraction completed
+      ↓
+Verification pending
+```
+
+Each stage must have a persisted state.
+
+---
+
+# 12. STATUS TRACKING
+
+Display the status of every major workflow.
+
+For visits:
+
+- Draft
+- Recording
+- Saved locally
+- Waiting for transcription
+- Transcribing
+- Transcript ready
+- Extraction pending
+- Processing
+- Needs verification
+- Verified
+- Report generated
+- Sync pending
+- Synced
+- Failed
+
+For recordings:
+
+- Recording
+- Compressing
+- Saved locally
+- Waiting to upload
+- Uploading
+- Uploaded
+- Transcription pending
+- Transcribing
+- Completed
+- Failed
+
+For synchronization:
+
+- Local only
+- Pending
+- Syncing
+- Synced
+- Failed
+
+---
+
+# 13. SCHEMA VALIDATION AND MEDICAL RULES
+
+Every AI extraction must be validated.
+
+Use structured schemas.
+
+Use Zod or an equivalent schema-validation library.
+
+Validate:
+
+- Data types
+- Required fields
+- Dates
+- Numerical values
+- Field consistency
+- Allowed values
+- Missing information
+
+Use medical rules only for:
+
+- Required-field validation
+- Consistency checking
+- Predefined danger-level flagging
+- Identifying missing information
+
+Medical rules must not generate diagnoses or treatment suggestions.
+
+AI output must not bypass validation.
+
+Invalid output must be flagged and reviewed.
+
+---
+
+# 14. DANGER-LEVEL PREDICTION
+
+Implement a danger-level prediction/flagging feature.
+
+This feature must be rule-based using clearly defined predefined criteria.
+
+It is not a diagnosis.
+
+It does not provide treatment advice.
+
+It should only flag information for review according to predefined rules.
+
+Possible output:
+
+- No predefined danger flag detected
+- Flag detected
+- Information incomplete
+- Manual review required
+
+Every flag must show:
+
+- The specific recorded information triggering the flag
+- The applicable rule
+- The reason the flag was triggered
+- Whether the information is verified
+
+Never invent clinical thresholds.
+
+Do not implement medical rules from guesses.
+
+Use documented, explicitly configured rules.
+
+If a rule cannot be safely configured, make the feature clearly indicate that rules are pending configuration.
+
+---
+
+# 15. AI-ASSISTED PROFILE CREATION
+
+Allow patient profiles to be created using captured voice or text information.
+
+Workflow:
+
+```text
+Record patient information
+        ↓
+Transcribe
+        ↓
+Extract basic details
+        ↓
+Validate schema
+        ↓
+Display profile fields
+        ↓
+Identify missing information
+        ↓
+ASHA worker reviews
+        ↓
+Edit fields
+        ↓
+Confirm
+        ↓
+Save patient profile
+```
+
+Fields may include:
+
+- Name
+- Age/date of birth
+- Gender
+- Contact information
+- Address
+- Family relationship
+- Relevant recorded information
+
+Do not fabricate missing values.
+
+Allow manual profile creation as well.
+
+---
+
+# 16. BASIC DETAILS EDITING
+
+Both the ASHA worker and the patient should be able to edit permitted basic details.
+
+Implement appropriate access control.
+
+Patient-editable fields must be restricted to relevant basic information.
+
+Sensitive medical documentation must not be freely editable by the patient.
+
+Changes must be recorded appropriately.
+
+When patient changes are synchronized:
+
+- Update the local record.
+- Queue synchronization.
+- Handle conflicts.
+- Preserve data integrity.
+
+---
+
+# 17. VISIT REMINDERS AND UPDATED HISTORY
+
+Create a visit reminder workflow.
+
+A visit may have:
+
+- Follow-up date
+- Reminder date
+- Reminder purpose
+- Notes
+
+When a visit is verified:
+
+- Update the patient's visit history.
+- Update the last-visit date.
+- Associate the report with the patient.
+- Update relevant follow-up information.
+- Update dashboard summaries.
+
+When a follow-up is created:
+
+- Add it to the patient's profile.
+- Add it to the follow-up page.
+- Display it on the dashboard where appropriate.
+
+---
+
+# 18. MISSING INFORMATION FOLLOW-UP
+
+The application must identify missing information.
+
+Examples:
+
+- Patient details missing
+- Visit date missing
+- Relevant information incomplete
+- Follow-up date missing when explicitly required
+
+Do not fabricate missing fields.
+
+The application may ask the ASHA worker for the missing information.
+
+Prompts must be clear and simple.
+
+Prompts can be:
+
+- Displayed as text
+- Read aloud using TTS
+
+The ASHA worker may:
+
+- Enter the missing information manually.
+- Answer using voice.
+- Skip the field if it is not applicable.
+
+Missing information must not prevent saving a draft.
+
+---
+
+# 19. MULTIPLE LANGUAGES
+
+Support multiple languages.
+
+At minimum:
+
+- Hindi
+- English
+- Hinglish
+
+Allow the ASHA worker to record naturally.
+
+The system should preserve the language of the conversation.
+
+Transcription should not unnecessarily translate the conversation.
+
+Reports may organize information while preserving the source meaning.
+
+Do not silently translate medical terms incorrectly.
+
+---
+
+# 20. VOICE READ-BACK
+
+Use Gnani Timbre v3.0.
+
+Read-back functionality should be available for:
+
+- Patient profile information
+- Transcript
+- Structured visit data
+- Visit report
+- Missing-information prompts
+- Corrected information
+
+Provide:
+
+- Play
+- Pause
+- Resume
+- Stop
+- Replay
+
+The user must be able to verify the information by listening.
+
+---
+
+# 21. OFFLINE WORKING
+
+Offline functionality is mandatory.
+
+The application must allow:
+
+- Accessing locally stored patients
+- Viewing locally available patient history
+- Creating patients
+- Editing basic patient details
+- Recording visits
+- Compressing recordings
+- Saving recordings locally
+- Saving visit drafts
+- Manually entering visit information
+- Creating appointments
+- Creating follow-ups
+- Creating tasks
+- Reviewing locally available reports
+
+The application must not lose data because the network is unavailable.
+
+---
+
+# 22. INCREMENTAL SYNCHRONIZATION
+
+The internet is used for incremental synchronization only.
+
+Do not make the application dependent on continuous internet access.
+
+When connectivity returns:
+
+1. Detect connectivity.
+2. Identify changed local records.
+3. Identify pending operations.
+4. Send only necessary changes.
+5. Use idempotency keys.
+6. Handle synchronization errors.
+7. Retry appropriately.
+8. Update sync metadata.
+9. Preserve records if synchronization fails.
+
+Do not repeatedly upload unchanged records.
+
+Implement incremental synchronization.
+
+## Conflict Handling
+
+If local and remote data conflict:
+
+- Do not silently overwrite data.
+- Detect the conflict.
+- Preserve the local version.
+- Preserve the remote version where necessary.
+- Provide a conflict-resolution workflow.
+
+---
+
+# 23. COMMUNITY HEALTH PATTERN RECOGNITION
+
+Create a Community Health page.
+
+Use available, locally stored, and synchronized records.
+
+Identify patterns from aggregated information.
+
+Requirements:
+
+- Aggregate information.
+- Do not expose patient identities.
+- Do not invent statistics.
+- Use actual available data.
+- Display data limitations.
+- Clearly distinguish observations from diagnoses.
+- Avoid medical recommendations.
+
+---
+
+# 24. PATIENT PORTAL
+
+Create a patient-facing portal.
+
+Patients may access their own:
+
+- Basic profile information
+- Relevant visit history
+- Reports
+- Appointments
+- Follow-up information
+
+Patients may edit permitted basic details.
+
+Implement access control.
+
+Never allow one patient to access another patient's information.
+
+---
+
+# 25. REQUIRED PAGES
+
+Create the following functional pages.
+
+## 1. Dashboard
+
+Display:
+
+- Total patients
+- Recent visits
+- Upcoming appointments
+- Follow-ups
+- Pending tasks
+- Pending queue jobs
+- Sync status
+- Offline status
+
+Quick actions:
+
+- Record visit
+- Add patient
+- View patients
+- Appointments
+- Follow-ups
+
+## 2. Patients
+
+- Patient list
+- Search
+- Add patient
+- Edit patient
+- Patient profile access
+
+## 3. Patient Profile
+
+Sections:
+
+- Overview
+- Visit history
+- Health history
+- Reports
+- Appointments
+- Follow-ups
+
+Actions:
+
+- Record visit
+- Edit basic details
+- Add follow-up
+- Add appointment
+
+## 4. Record Visit
+
+- Select patient
+- Start recording
+- Stop recording
+- Pause/resume if supported
+- Compress audio
+- Save audio
+- Playback
+- Manual entry
+- Language selection
+- Submit for processing
+
+## 5. Record Verification
+
+- Transcript
+- Structured information
+- Missing fields
+- Manual editing
+- Voice correction
+- Voice read-back
+- Validation
+- Confirm and save
+
+## 6. Reports
+
+- Generated reports
+- View
+- Edit
+- Read aloud
+- Print/export where implemented
+
+## 7. Visit History
+
+- List visits
+- Search
+- Filter
+- View visit details
+- View status
+
+## 8. Appointments
+
+- Create
+- Edit
+- Cancel
+- Complete
+- View upcoming/past
+
+## 9. Follow-ups
+
+- Create
+- Edit
+- Complete
+- View overdue
+- View upcoming
+
+## 10. Tasks
+
+- Create
+- Edit
+- Complete
+- Filter
+
+## 11. Health History
+
+Chronological patient history using recorded information.
+
+## 12. Community Health
+
+Aggregated patterns from actual available data.
+
+## 13. Patient Portal
+
+Patient-specific access to permitted information.
+
+## 14. Offline Records
+
+Display:
+
+- Pending recordings
+- Pending transcription
+- Pending AI processing
+- Pending synchronization
+- Failed jobs
+- Completed jobs
+
+Actions:
+
+- Retry
+- Resume
+- View
+- Delete draft where appropriate
+
+## 15. Settings
+
+- Profile
+- Language
+- Voice settings
+- Application preferences
+- Offline settings
+- Sync information
+
+---
+
+# 26. CRITICAL WORKFLOW
+
+The application must implement this workflow exactly.
+
+```text
+DASHBOARD
+    ↓
+SELECT PATIENT
+    ↓
+PATIENT PROFILE
+    ↓
+START VISIT
+    ↓
+RECORD AUDIO
+    ↓
+COMPRESS AUDIO
+    ↓
+SAVE COMPLETE RECORDING LOCALLY
+    ↓
+CREATE PERSISTENT QUEUE ENTRY
+    ↓
+CHECK CONNECTIVITY
+    ↓
+IF OFFLINE
+    ├── Save recording
+    ├── Save visit draft
+    ├── Mark processing deferred
+    └── Wait for connectivity
+    ↓
+IF ONLINE
+    ├── Submit complete compressed recording
+    ├── Transcribe using Prisma v3.0
+    └── Continue processing
+    ↓
+TRANSCRIPT
+    ↓
+LLM STRUCTURED EXTRACTION
+    ↓
+SCHEMA VALIDATION
+    ↓
+MEDICAL RULE VALIDATION
+    ↓
+IDENTIFY MISSING INFORMATION
+    ↓
+ASK FOR MISSING INFORMATION
+    ↓
+DISPLAY STRUCTURED VISIT
+    ↓
+VOICE READ-BACK USING TIMBRE v3.0
+    ↓
+MANUAL OR VOICE CORRECTIONS
+    ↓
+VERIFY INFORMATION
+    ↓
+CONFIRM
+    ↓
+SAVE VERIFIED REPORT LOCALLY
+    ↓
+UPDATE PATIENT HISTORY
+    ↓
+CREATE VISIT REMINDERS / FOLLOW-UPS / TASKS
+    ↓
+INCREMENTAL SYNCHRONIZATION
+    ↓
+UPDATE DASHBOARD
+```
+
+---
+
+# 27. OFFLINE WORKFLOW
+
+```text
+START VISIT
+    ↓
+RECORD AUDIO
+    ↓
+COMPRESS COMPLETE AUDIO
+    ↓
+SAVE TO LOCAL DATABASE
+    ↓
+SAVE VISIT DRAFT
+    ↓
+CREATE PERSISTENT QUEUE JOB
+    ↓
+MARK "WAITING FOR CONNECTION"
+    ↓
+USER CONTINUES WORKING
+    ↓
+INTERNET RETURNS
+    ↓
+PROCESS QUEUE
+    ↓
+TRANSCRIPTION
+    ↓
+STRUCTURED EXTRACTION
+    ↓
+VALIDATION
+    ↓
+VERIFICATION
+    ↓
+SAVE REPORT
+    ↓
+INCREMENTAL SYNC
+```
+
+---
+
+# 28. FILE STRUCTURE
+
+Use a clean GitHub-ready monorepo.
+
+```text
+arova/
+│
+├── README.md
+├── .gitignore
+├── .env.example
+├── package.json
+├── package-lock.json
+│
+├── docs/
+│   ├── architecture.md
+│   ├── workflow.md
+│   ├── api.md
+│   ├── database.md
+│   ├── offline-sync.md
+│   └── deployment.md
+│
+├── frontend/
+│   ├── package.json
+│   ├── vite.config.ts
+│   ├── tsconfig.json
+│   ├── index.html
+│   │
+│   ├── public/
+│   │   ├── manifest.json
+│   │   └── icons/
+│   │
+│   └── src/
+│       ├── main.tsx
+│       ├── App.tsx
+│       │
+│       ├── components/
+│       │   ├── layout/
+│       │   ├── navigation/
+│       │   ├── common/
+│       │   ├── patients/
+│       │   ├── visits/
+│       │   ├── voice/
+│       │   ├── reports/
+│       │   ├── queue/
+│       │   ├── sync/
+│       │   ├── appointments/
+│       │   ├── followups/
+│       │   └── tasks/
+│       │
+│       ├── pages/
+│       │   ├── Dashboard/
+│       │   ├── Patients/
+│       │   ├── PatientProfile/
+│       │   ├── RecordVisit/
+│       │   ├── Verification/
+│       │   ├── Reports/
+│       │   ├── VisitHistory/
+│       │   ├── Appointments/
+│       │   ├── FollowUps/
+│       │   ├── Tasks/
+│       │   ├── HealthHistory/
+│       │   ├── CommunityHealth/
+│       │   ├── PatientPortal/
+│       │   ├── OfflineRecords/
+│       │   └── Settings/
+│       │
+│       ├── services/
+│       │   ├── api/
+│       │   ├── local-db/
+│       │   ├── queue/
+│       │   ├── sync/
+│       │   ├── voice/
+│       │   ├── compression/
+│       │   ├── transcription/
+│       │   ├── tts/
+│       │   └── ai/
+│       │
+│       ├── hooks/
+│       ├── store/
+│       ├── contexts/
+│       ├── utils/
+│       ├── types/
+│       ├── schemas/
+│       ├── constants/
+│       ├── routes/
+│       ├── styles/
+│       └── tests/
+│
+├── backend/
+│   ├── package.json
+│   ├── tsconfig.json
+│   │
+│   ├── src/
+│   │   ├── server.ts
+│   │   ├── app.ts
+│   │   │
+│   │   ├── config/
+│   │   ├── middleware/
+│   │   ├── routes/
+│   │   ├── controllers/
+│   │   ├── services/
+│   │   │   ├── gnani/
+│   │   │   ├── transcription/
+│   │   │   ├── tts/
+│   │   │   ├── ai/
+│   │   │   ├── reports/
+│   │   │   ├── queue/
+│   │   │   └── sync/
+│       │
+│       ├── repositories/
+│       ├── validators/
+│       ├── utils/
+│       ├── types/
+│       └── tests/
+│
+│   └── prisma/
+│       ├── schema.prisma
+│       ├── migrations/
+│       └── seed.ts
+│
+└── shared/
+    ├── types/
+    ├── schemas/
+    ├── constants/
+    └── utils/
+```
+
+Maintain modularity.
+
+Do not put the entire application into a single file.
+
+---
+
+# 29. DATABASE
+
+Use PostgreSQL and Prisma.
+
+Models should include:
+
+- User
+- Patient
+- Family
+- Visit
+- Recording
+- Transcript
+- Extraction
+- Report
+- Appointment
+- FollowUp
+- Task
+- PatientHistory
+- QueueJob
+- SyncMetadata
+- IdempotencyRecord
+
+## Recording
+
+Store:
+
+- Recording ID
+- Visit ID
+- Local file reference where applicable
+- File metadata
+- Compression information
+- Processing status
+- Upload status
+- Creation timestamp
+
+Do not store large recordings directly inside ordinary database text fields.
+
+## Visit
+
+Store:
+
+- Visit ID
+- Patient ID
+- Visit date
+- Visit type
+- Transcript
+- Structured data
+- Summary
+- Verification status
+- Processing status
+- Sync status
+- Created/updated timestamps
+
+## QueueJob
+
+Store:
+
+- Job ID
+- Operation
+- Entity ID
+- Idempotency key
+- Status
+- Retry count
+- Last attempt
+- Next retry
+- Error
+- Payload/reference
+- Created timestamp
+
+The local database queue is authoritative for offline jobs.
+
+The backend must also persist processing state for jobs it accepts.
+
+---
+
+# 30. API STRUCTURE
+
+Implement REST APIs.
+
+## Patients
+
+```text
+GET    /api/patients
+GET    /api/patients/:id
+POST   /api/patients
+PUT    /api/patients/:id
+```
+
+## Visits
+
+```text
+GET    /api/visits
+GET    /api/visits/:id
+POST   /api/visits
+PUT    /api/visits/:id
+```
+
+## Transcription
+
+```text
+POST   /api/transcription
+GET    /api/transcription/:id
+```
+
+## Extraction
+
+```text
+POST   /api/extraction
+GET    /api/extraction/:id
+```
+
+## Correction
+
+```text
+POST   /api/corrections
+```
+
+## TTS
+
+```text
+POST   /api/tts
+```
+
+Use WebSocket streaming where required.
+
+## Reports
+
+```text
+GET    /api/reports
+GET    /api/reports/:id
+POST   /api/reports
+PUT    /api/reports/:id
+```
+
+## Appointments
+
+```text
+GET    /api/appointments
+POST   /api/appointments
+PUT    /api/appointments/:id
+DELETE /api/appointments/:id
+```
+
+## Follow-ups
+
+```text
+GET    /api/followups
+POST   /api/followups
+PUT    /api/followups/:id
+DELETE /api/followups/:id
+```
+
+## Tasks
+
+```text
+GET    /api/tasks
+POST   /api/tasks
+PUT    /api/tasks/:id
+DELETE /api/tasks/:id
+```
+
+## Sync
+
+```text
+POST   /api/sync
+GET    /api/sync/status
+```
+
+## Queue
+
+```text
+GET    /api/jobs
+GET    /api/jobs/:id
+POST   /api/jobs/:id/retry
+```
+
+Implement:
+
+- Validation
+- Authentication
+- Authorization
+- Error handling
+- Idempotency
+- Consistent response structures
+
+---
+
+# 31. DESIGN
+
+## Brand colors
+
+The primary brand color is **PLUM**.
+
+Use a polished plum-based design.
+
+Suggested palette:
+
+```text
+Primary Plum: #54264F
+Deep Plum: #39203A
+Light Plum: #E9DDE8
+Muted Plum: #B69AB4
+
+Warm Background: #FAF7F5
+White: #FFFFFF
+
+Text: #29232B
+Muted Text: #77717A
+
+Soft Neutral: #EEE9ED
+```
+
+Adjust shades as needed.
+
+Do not use dusty blush as the dominant primary brand color.
+
+Plum should be the identity color.
+
+## Visual Style
+
+- Elegant
+- Modern
+- Healthcare-oriented
+- Minimal
+- Professional
+- Warm
+- Accessible
+
+Use:
+
+- Clear hierarchy
+- Spacious layouts
+- Rounded cards
+- Subtle shadows
+- High readability
+- Consistent iconography
+- Large voice controls
+
+Avoid:
+
+- Clutter
+- Excessive gradients
+- Overly decorative UI
+- Tiny buttons
+- Generic template appearance
+
+---
+
+# 32. README AND GITHUB
+
+The root README is mandatory.
+
+It must contain:
+
+- Project title
+- Description
+- Problem statement
+- Solution
+- Features
+- Workflow
+- Technology stack
+- Architecture
+- Screenshots
+- Repository structure
+- Local setup
+- Environment variables
+- Database setup
+- Running frontend
+- Running backend
+- AI integration
+- Offline architecture
+- Persistent queue
+- Synchronization
+- Deployment
+- Vercel instructions
+- Render instructions
+- Hackathon constraints
+- Limitations
+
+Create `.gitignore`.
+
+Ignore:
+
+```text
+node_modules/
+dist/
+build/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+coverage/
+temporary audio
+recordings
+local database files
+uploads
+```
+
+Never commit API keys.
+
+Never commit real patient data.
+
+Never commit real patient recordings.
+
+Use synthetic demo data.
+
+---
+
+# 33. ENVIRONMENT VARIABLES
+
+Create `.env.example`.
+
+Include:
+
+```env
+DATABASE_URL=
+
+JWT_SECRET=
+
+GNANI_API_KEY=
+GNANI_API_BASE_URL=
+
+GNANI_STT_MODEL=Prisma-v3.0
+GNANI_TTS_MODEL=Timbre-v3.0
+
+LLM_PROVIDER=
+LLM_API_KEY=
+LLM_MODEL=
+LLM_BASE_URL=
+
+FRONTEND_URL=
+BACKEND_URL=
+
+NODE_ENV=
+```
+
+Adjust exact model identifiers according to the Gnani API documentation.
+
+Never expose secrets to the frontend.
+
+---
+
+# 34. DEPLOYMENT
+
+## Frontend
+
+Deploy to Vercel.
+
+Configure:
+
+- Root directory
+- Build command
+- Environment variables
+- SPA routing
+- Production API URL
+
+## Backend
+
+Deploy to Render.
+
+Configure:
+
+- Build command
+- Start command
+- Environment variables
+- Health check
+- CORS
+- PostgreSQL connection
+
+## Database
+
+Use PostgreSQL.
+
+Configure migrations.
+
+The local application must continue functioning when the remote backend is unavailable.
+
+---
+
+# 35. TESTING
+
+Test:
+
+- Local database persistence
+- Patient creation
+- Patient editing
+- Profile creation using AI
+- Visit recording
+- Audio compression
+- Recording playback
+- Complete recording integrity
+- Transcription
+- Extraction
+- Schema validation
+- Missing information
+- Manual corrections
+- Voice corrections
+- Read-back
+- Verification
+- Report generation
+- Queue persistence
+- Retry
+- Exponential backoff
+- Idempotency
+- Resume
+- Offline operation
+- Incremental synchronization
+- Conflict handling
+- Appointments
+- Follow-ups
+- Tasks
+- Patient portal access
+- Community health aggregation
+
+Test that audio is never sliced.
+
+Test that queue jobs survive application refresh.
+
+Test that duplicate requests do not create duplicate records.
+
+---
+
+# 36. HACKATHON IMPLEMENTATION PLAN
+
+Prioritize in this order.
+
+## Phase 1 — Foundation
+
+- Repository
+- React frontend
+- Node backend
+- PostgreSQL
+- Prisma
+- IndexedDB
+- Navigation
+- Plum design system
+- README
+- Environment configuration
+
+## Phase 2 — Patient Workflow
+
+- Patient creation
+- Patient list
+- Patient profile
+- Basic editing
+- Local persistence
+
+## Phase 3 — Voice Workflow
+
+- Recording
+- Compression
+- Save complete audio locally
+- Persistent queue
+- Gnani Prisma v3.0 integration
+- Transcription
+
+## Phase 4 — AI Workflow
+
+- LLM extraction
+- Schema validation
+- Missing fields
+- Structured report
+- Verification
+- Correction
+
+## Phase 5 — Voice Read-Back
+
+- Gnani Timbre v3.0
+- Read report
+- Read extracted fields
+- Read missing prompts
+
+## Phase 6 — Offline Reliability
+
+- Deferred processing
+- Persistent queue
+- Retry
+- Exponential backoff
+- Idempotency
+- Resume support
+- Status tracking
+
+## Phase 7 — Workflow Features
+
+- Visit history
+- Reports
+- Appointments
+- Follow-ups
+- Tasks
+- Reminders
+- Health history
+
+## Phase 8 — Additional Features
+
+- Danger-level flags
+- Community health pattern recognition
+- Patient portal
+- AI-assisted profile creation
+
+## Phase 9 — Deployment
+
+- Vercel
+- Render
+- PostgreSQL
+- Production testing
+- README finalization
+
+---
+
+# 37. DEFINITION OF DONE
+
+The project is complete only when:
+
+- The frontend runs.
+- The backend runs.
+- The database works.
+- Patient profiles work.
+- Patient records persist locally.
+- Recording works.
+- Audio compression works.
+- Recording remains one complete file.
+- No slicing is implemented.
+- Persistent queue works.
+- Queue survives refresh.
+- Deferred processing works.
+- Retry logic works.
+- Exponential backoff works.
+- Idempotency works.
+- Resume support works.
+- Status tracking works.
+- Manual retry works.
+- Transcription integration is implemented.
+- AI extraction is implemented.
+- Schema validation works.
+- Missing-information prompts work.
+- Verification works.
+- Corrections work.
+- Voice read-back works.
+- Reports work.
+- Visit history works.
+- Reminders work.
+- Follow-ups work.
+- Appointments work.
+- Tasks work.
+- Health history works.
+- Danger-level flags use configured rules.
+- Community health patterns use real available data.
+- Patient portal access is restricted.
+- Offline operation works.
+- Incremental synchronization works.
+- The application is responsive.
+- No fake buttons remain.
+- No secrets are committed.
+- README is complete.
+- Deployment works.
+
+---
+
+# 38. FINAL CODEX INSTRUCTIONS
+
+First, inspect this specification thoroughly.
+
+Then:
+
+1. Produce an architecture plan.
+2. Identify the most critical MVP workflow.
+3. Create the repository structure.
+4. Set up the database.
+5. Implement the local database.
+6. Implement the persistent queue.
+7. Implement the patient workflow.
+8. Implement the voice workflow.
+9. Implement AI processing.
+10. Implement verification.
+11. Implement synchronization.
+12. Implement the remaining pages.
+13. Test each phase.
+14. Fix errors.
+15. Prepare deployment.
+
+Do not merely create a plan.
+
+Do not create only a frontend mockup.
+
+Do not create fake integrations.
+
+Do not make buttons that do nothing.
+
+Do not invent data.
+
+Do not bypass verification.
+
+Do not implement diagnosis or medical suggestions.
+
+Do not slice recordings.
+
+Do not store the persistent queue in RAM.
+
+Do not sacrifice offline functionality for cloud functionality.
+
+Build a functional application.
+
+When credentials are unavailable, implement the correct integration structure and clearly indicate what requires credentials. Never falsely claim that an external service is connected.
+
+Implement in phases, verify each phase, and continue until the application is functional.
