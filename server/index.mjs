@@ -119,4 +119,6 @@ sttWss.on('connection',(client,request)=>{
  client.on('close',()=>{if(upstream&&upstream.readyState<WebSocket.CLOSING)upstream.close()});
  client.on('error',()=>{if(upstream&&upstream.readyState<WebSocket.OPEN)upstream.close()});
 });
-const port=Number(process.env.API_PORT||3001);server.listen(port,'127.0.0.1',()=>console.log(`AROVA local API ready at http://127.0.0.1:${port}`));
+const port=Number(process.env.PORT||process.env.API_PORT||3001);
+const host=process.env.PORT?'0.0.0.0':'127.0.0.1';
+server.listen(port,host,()=>console.log(`AROVA API ready at http://${host}:${port}`));
