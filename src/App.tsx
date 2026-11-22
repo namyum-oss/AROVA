@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
+import { apiFetch as fetch, apiWebSocketUrl } from './api';
 import { extractVisitFacts } from './report-extraction';
 import visitRequirements from '../shared/visit-requirements.json';
 import { deleteOfflineRecording, listOfflineRecordings, saveOfflineRecording, transcribeOfflineRecording } from './offline-audio';
@@ -166,7 +167,7 @@ function App(){
   try{
    stream=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true}});
    try{context=new AudioContext({sampleRate:16000})}catch{context=new AudioContext()}audioContextRef.current=context;
-   socket=new WebSocket(`${location.protocol==='https:'?'wss':'ws'}://${location.host}/ws/stt`);sttSocketRef.current=socket;socket.binaryType='arraybuffer';
+   socket=new WebSocket(apiWebSocketUrl('/ws/stt'));sttSocketRef.current=socket;socket.binaryType='arraybuffer';
    let resolveReady:()=>void=()=>{};let rejectReady:(error:Error)=>void=()=>{};const ready=new Promise<void>((resolve,reject)=>{resolveReady=resolve;rejectReady=reject});let wasReady=false;
    socket.onopen=()=>socket?.send(JSON.stringify({type:'start',languageCode:sttLanguage,sampleRate:16000}));
    socket.onmessage=event=>{let message:any;try{message=JSON.parse(String(event.data))}catch{return}

@@ -20,7 +20,9 @@ Choose one transcription language in Settings. AROVA sends that single language 
 
 ## Render backend
 
-Configure the Render web service with `npm ci` as its build command and `npm run api` as its start command. Set `GEMINI_API_KEY` in the service environment; `GNANI_API_KEY` is optional and enables speech transcription. Use `/api/health` as the health-check path. The backend listens on Render's `PORT` and public interface when that variable is set, and retains the local `API_PORT` behavior otherwise.
+Configure the Render web service with `npm ci` as its build command and `npm run api` as its start command. Set `GEMINI_API_KEY` in the service environment; `GNANI_API_KEY` is optional and enables speech transcription. The backend allows the Vercel frontend origin `https://arova-git-master-vanilla-latte1.vercel.app` by default; set `FRONTEND_ORIGINS` to a comma-separated list of exact origins if you use a different production domain or Vercel preview URLs. Use `/api/health` as the health-check path. The backend listens on Render's `PORT` and public interface when that variable is set, and retains the local `API_PORT` behavior otherwise.
+
+The production frontend sends API requests and speech WebSocket connections directly to `https://arova-8ev9.onrender.com`; set the optional Vercel build environment variable `VITE_API_URL` to override this URL. API authentication cookies are secure cross-site cookies in production.
 
 The SQLite database is stored in `server/arova.sqlite`. Render deployments need persistent storage mounted for that directory (or an external database) to retain records across restarts and deploys.
 

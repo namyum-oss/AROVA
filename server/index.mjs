@@ -14,7 +14,22 @@ if(!process.env.GEMINI_API_KEY?.trim()){
  process.exit(1);
 }
 const {generateVisitReport,correctReport,deidentifyForVoice}=await import('./gemini.mjs');
-const app=express(); app.use(express.json({limit:'5mb'}));
+const app=express();
+const allowedOrigins=new Set((process.env.FRONTEND_ORIGINS||process.env.FRONTEND_ORIGIN||'https://arova-git-master-vanilla-latte1.vercel.app').split(',').map(origin=>origin.trim()).filter(Boolean));
+const isAllowedOrigin=origin=>allowedOrigins.has(origin)||(!process.env.PORT&&/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin));
+app.use((req,res,next)=>{
+ const origin=req.get('Origin');
+ if(!origin)return next();
+ if(!isAllowedOrigin(origin))return res.status(403).json({error:'This origin is not allowed.'});
+ res.setHeader('Access-Control-Allow-Origin',origin);
+ res.setHeader('Access-Control-Allow-Credentials','true');
+ res.setHeader('Access-Control-Allow-Methods','GET,POST,PUT,OPTIONS');
+ res.setHeader('Access-Control-Allow-Headers',req.get('Access-Control-Request-Headers')||'Content-Type');
+ res.vary('Origin');
+ if(req.method==='OPTIONS')return res.sendStatus(204);
+ next();
+});
+app.use(express.json({limit:'5mb'}));
 const seed={patients:[],reminders:[]};
 const db=openDatabase(resolve(root,'arova.sqlite'),resolve(root,'data.json'),seed);
 const sessions=new Map();
@@ -25,7 +40,8 @@ const sessionFor=req=>{const token=cookieValue(req);const session=sessions.get(t
 const requireRole=role=>(req,res,next)=>{const session=sessionFor(req);if(!session)return res.status(401).json({error:'Please sign in to continue.'});if(session.role!==role)return res.status(403).json({error:'This account does not have access to this page.'});req.arovaSession=session;next()};
 const passwordRecord=password=>{const salt=randomBytes(16).toString('hex');return {salt,hash:scryptSync(password,salt,64).toString('hex')}};
 const verifyPassword=(password,salt,stored)=>{try{const actual=scryptSync(password,salt,64);const expected=Buffer.from(stored,'hex');return actual.length===expected.length&&timingSafeEqual(actual,expected)}catch{return false}};
-const createSession=(res,role,patientId)=>{const token=randomBytes(32).toString('hex');sessions.set(token,{role,patientId,expiresAt:Date.now()+12*60*60*1000});const secure=process.env.NODE_ENV==='production'?'; Secure':'';res.setHeader('Set-Cookie',`${sessionCookie}=${token}; HttpOnly; Path=/; SameSite=Strict; Max-Age=43200${secure}`)};
+const sessionCookieAttributes=process.env.NODE_ENV==='production'?'; SameSite=None; Secure':'; SameSite=Strict';
+const createSession=(res,role,patientId)=>{const token=randomBytes(32).toString('hex');sessions.set(token,{role,patientId,expiresAt:Date.now()+12*60*60*1000});res.setHeader('Set-Cookie',`${sessionCookie}=${token}; HttpOnly; Path=/; Max-Age=43200${sessionCookieAttributes}`)};
 app.get('/api/health',(_req,res)=>res.json({ok:true,service:'arova-local-api',sttConfigured:Boolean(process.env.GNANI_API_KEY),ttsConfigured:Boolean(process.env.GNANI_TTS_API_KEY||process.env.GNANI_API_KEY)}));
 app.get('/api/connectivity',async(_req,res)=>{const probes=['https://www.gstatic.com/generate_204','https://connectivitycheck.gstatic.com/generate_204'].map(url=>fetch(url,{method:'HEAD',signal:AbortSignal.timeout(7000),cache:'no-store'}).then(response=>response.status===204));const results=await Promise.allSettled(probes);const internet=results.some(result=>result.status==='fulfilled'&&result.value);res.set('Cache-Control','no-store').json({internet,checkedAt:new Date().toISOString()})});
 app.get('/api/auth/setup-status',(_req,res)=>res.json({workerSetupRequired:!workerConfigured()}));
@@ -33,7 +49,7 @@ app.get('/api/auth/session',(req,res)=>{const session=sessionFor(req);if(!sessio
 app.post('/api/auth/worker/setup',(req,res)=>{if(workerConfigured())return res.status(409).json({error:'The ASHA worker account is already set up. Sign in instead.'});const username=String(req.body?.username||'').trim();const password=String(req.body?.password||'');if(username.length<3||password.length<8)return res.status(400).json({error:'Use a username of at least 3 characters and a password of at least 8 characters.'});const {salt,hash}=passwordRecord(password);try{db.prepare('INSERT INTO worker_credentials(id,username,password_salt,password_hash,created_at) VALUES(1,?,?,?,?)').run(username,salt,hash,new Date().toISOString());createSession(res,'worker');res.status(201).json({role:'worker'})}catch{return res.status(409).json({error:'The worker account could not be created. Try a different username.'})}});
 app.post('/api/auth/worker/login',(req,res)=>{const username=String(req.body?.username||'').trim();const password=String(req.body?.password||'');const account=db.prepare('SELECT username,password_salt,password_hash FROM worker_credentials WHERE id=1').get();if(!account||username!==account.username||!verifyPassword(password,account.password_salt,account.password_hash))return res.status(401).json({error:'Username or password is incorrect.'});createSession(res,'worker');res.json({role:'worker'})});
 app.post('/api/auth/patient/login',(req,res)=>{const patientId=String(req.body?.patientId||'').trim();const password=String(req.body?.password||'');const account=db.prepare('SELECT password_salt,password_hash FROM patient_credentials WHERE patient_id=?').get(patientId);if(!account||!verifyPassword(password,account.password_salt,account.password_hash))return res.status(401).json({error:'Patient ID or password is incorrect.'});if(!db.prepare('SELECT id FROM patients WHERE id=?').get(patientId))return res.status(401).json({error:'Patient ID or password is incorrect.'});createSession(res,'patient',patientId);res.json({role:'patient'})});
-app.post('/api/auth/logout',(req,res)=>{const token=cookieValue(req);if(token)sessions.delete(token);res.setHeader('Set-Cookie',`${sessionCookie}=; HttpOnly; Path=/; SameSite=Strict; Max-Age=0`);res.json({ok:true})});
+app.post('/api/auth/logout',(req,res)=>{const token=cookieValue(req);if(token)sessions.delete(token);res.setHeader('Set-Cookie',`${sessionCookie}=; HttpOnly; Path=/; Max-Age=0${sessionCookieAttributes}`);res.json({ok:true})});
 app.get('/api/patient/me',requireRole('patient'),(req,res)=>{const patient=readData(db).patients.find(item=>item.id===req.arovaSession.patientId);if(!patient)return res.status(404).json({error:'Patient record is unavailable.'});res.set('Cache-Control','no-store').json(patient)});
 app.post('/api/patients/:patientId/access',requireRole('worker'),(req,res)=>{const patientId=String(req.params.patientId||'');if(!db.prepare('SELECT id FROM patients WHERE id=?').get(patientId))return res.status(404).json({error:'Patient record was not found.'});const password=String(req.body?.password||'');if(password.length<8)return res.status(400).json({error:'Patient passwords must be at least 8 characters.'});const {salt,hash}=passwordRecord(password);db.prepare('INSERT INTO patient_credentials(patient_id,password_salt,password_hash,created_at) VALUES(?,?,?,?) ON CONFLICT(patient_id) DO UPDATE SET password_salt=excluded.password_salt,password_hash=excluded.password_hash,created_at=excluded.created_at').run(patientId,salt,hash,new Date().toISOString());res.json({ok:true})});
 app.use('/api',(req,res,next)=>{const session=sessionFor(req);if(!session)return res.status(401).json({error:'Please sign in as an ASHA worker to continue.'});if(session.role!=='worker')return res.status(403).json({error:'This endpoint is only available to ASHA workers.'});req.arovaSession=session;next()});
@@ -88,6 +104,8 @@ app.post('/api/reports/:visitId/correct',express.raw({type:'multipart/form-data'
 const server=createServer(app);
 const sttWss=new WebSocketServer({server,path:'/ws/stt'});
 sttWss.on('connection',(client,request)=>{
+ const origin=request.headers.origin;
+ if(origin&&!isAllowedOrigin(origin)){client.close(1008,'Origin is not allowed');return}
  const session=sessionFor(request);if(session?.role!=='worker'){client.close(1008,'ASHA worker sign-in required');return}
  let upstream=null,started=false;
  const fail=(message)=>{if(client.readyState===WebSocket.OPEN)client.send(JSON.stringify({type:'error',message}))};

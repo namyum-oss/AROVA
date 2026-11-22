@@ -1,3 +1,5 @@
+import { apiWebSocketUrl } from './api';
+
 export type OfflineRecording={id:string;patientId:string;visitId:string;languageCode:string;blob:Blob;createdAt:string;transcript?:string;retryAt?:number;visitType?:string;visitDate?:string;followup?:string;temperatureC?:number;patientNameSnapshot?:string;ageYearsSnapshot?:number};
 
 const databaseName='arova-offline-audio';
@@ -37,7 +39,7 @@ export async function transcribeOfflineRecording(item:OfflineRecording):Promise<
   let frames:Uint8Array[];
   try{frames=audioToFrames(await context.decodeAudioData(await item.blob.arrayBuffer()))}finally{await context.close()}
   if(!frames.length)throw new Error('The saved recording did not contain readable audio.');
-  const socket=new WebSocket(`${location.protocol==='https:'?'wss':'ws'}://${location.host}/ws/stt`);socket.binaryType='arraybuffer';
+  const socket=new WebSocket(apiWebSocketUrl('/ws/stt'));socket.binaryType='arraybuffer';
   return await new Promise<string>((resolve,reject)=>{
     const segments:string[]=[];const ids=new Set<string>();let ready=false,committed=false,settled=false;let quietTimer:ReturnType<typeof setTimeout>|undefined;let totalTimer:ReturnType<typeof setTimeout>|undefined;
     const cleanup=()=>{if(quietTimer)clearTimeout(quietTimer);if(totalTimer)clearTimeout(totalTimer);if(socket.readyState===WebSocket.OPEN)socket.close()};
